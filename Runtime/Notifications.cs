@@ -1,4 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using System.Timers;
 using UnityEngine;
 using UnityEngine.Events;
@@ -35,14 +38,16 @@ namespace Group3d.Notifications
         // Size of the array means (in practice) amount of max notifications on the screen at once.
         private readonly int[] notificationSlots = new int[10];
 
+        private readonly ConcurrentDictionary<int, long> timestamps = new ConcurrentDictionary<int, long>();
+        private readonly ConcurrentQueue<Notification> notificationsToSend = new ConcurrentQueue<Notification>();
+        private readonly ConcurrentBag<Notification> notificationsRateLimited = new ConcurrentBag<Notification>();
+
         // Used to prevent sending multiple duplicate notifications.
-        private int lastNotificationHash;
         private Timer timer;
 
         private void Awake()
         {
             instance = this;
-
             timer = new Timer(preventDuplicatesTimeInMs);
             timer.Elapsed += ResetLastNotificationHash;
             timer.AutoReset = true;
@@ -54,7 +59,10 @@ namespace Group3d.Notifications
             }
         }
 
-        private void ResetLastNotificationHash(object o, ElapsedEventArgs e) => lastNotificationHash = 0;
+        private void ResetLastNotificationHash(object o, ElapsedEventArgs e)
+        {
+
+        }
 
         private void OnApplicationQuit()
         {
@@ -99,37 +107,64 @@ namespace Group3d.Notifications
         /// </remarks>
         public static void Send(string message, NotificationTypes type = NotificationTypes.Success, UnityAction onClickEvent = null)
         {
-            instance.SendNotification(message, type, onClickEvent);
+            var notification = new Notification
+            {
+                Message = message,
+                Type = type,
+                OnClickEvent = onClickEvent,
+            };
+
+            Task.Run(() => instance.HandleNotification(notification));
         }
 
-        private void SendNotification(string message, NotificationTypes type, UnityAction onClickEvent)
+        public static async Task SendAsync(string message, NotificationTypes type = NotificationTypes.Success, UnityAction onClickEvent = null)
         {
-            var hash = message.GetHashCode();
-            if (lastNotificationHash == hash)
+            var notification = new Notification
             {
-                Debug.Log("Duplicate notification after too short delay silenced");
+                Message = message,
+                Type = type,
+                OnClickEvent = onClickEvent,
+            };
+
+            await Task.Run(() => instance.HandleNotification(notification));
+        }
+
+        private void HandleNotification(Notification notification)
+        {
+            var hash = notification.Message.GetHashCode();
+            var timestamp = DateTime.Now.Ticks;
+
+            // Check timestamps, if duplicate notification is sent recently, abort.
+            if (timestamps.ContainsKey(hash) && timestamps.TryGetValue(hash, out var previousStamp) && timestamp - previousStamp <= preventDuplicatesTimeInMs)
+            {
+                notificationsRateLimited.Add(notification);
                 return;
             }
 
-            if (lastNotificationHash == 0)
+            // Add new timestamp. If it fails that means notification is probably added during few milliseconds after last check so rate limit instead.
+            if (timestamps.TryAdd(hash, timestamp))
             {
-                // Reset timer 
-                timer.Stop();
-                timer.Start();
+                notificationsToSend.Enqueue(notification);
             }
-            lastNotificationHash = hash;
+            else
+            {
+                notificationsRateLimited.Add(notification);
+            }
+        }
 
+        private void SendNotification(Notification notification)
+        {
             // Parent is this GameObject by default.
             var parent = transform;
 
-            GameObject notification;
+            GameObject notificationGameObject;
             RectTransform rect;
 
             if (notificationPrefab == null)
             {
                 // Prefab not given, creating notification dynamically.
-                notification = new GameObject("Notification");
-                rect = notification.AddComponent<RectTransform>();
+                notificationGameObject = new GameObject("Notification");
+                rect = notificationGameObject.AddComponent<RectTransform>();
                 rect.SetParent(parent);
                 rect.sizeDelta = new Vector2(0, defaultHeight);
                 rect.localScale = Vector3.one;
@@ -139,13 +174,13 @@ namespace Group3d.Notifications
                 rect.pivot = new Vector2(.5f, .5f);
                 rect.anchoredPosition = Vector2.zero;
 
-                notification.AddComponent<CanvasRenderer>();
+                notificationGameObject.AddComponent<CanvasRenderer>();
 
-                var image = notification.AddComponent<Image>();
+                var image = notificationGameObject.AddComponent<Image>();
                 image.raycastTarget = true; // So button works.
                 image.maskable = false;
 
-                var button = notification.AddComponent<Button>();
+                var button = notificationGameObject.AddComponent<Button>();
                 button.interactable = true;
                 button.transition = Selectable.Transition.None;
 
@@ -172,18 +207,18 @@ namespace Group3d.Notifications
                 text.font = font;
                 text.alignment = TextAnchor.MiddleCenter;
 
-                var notificationUI = notification.AddComponent<NotificationUI>();
+                var notificationUI = notificationGameObject.AddComponent<NotificationUI>();
                 notificationUI.button = button;
                 notificationUI.panelImage = image;
                 notificationUI.messageText = text;
             }
             else
             {
-                notification = Instantiate(notificationPrefab, parent);
-                rect = notification.GetComponent<RectTransform>();
+                notificationGameObject = Instantiate(notificationPrefab, parent);
+                rect = notificationGameObject.GetComponent<RectTransform>();
             }
 
-            notification.GetComponent<NotificationUI>().SetUp(message, GetColor(type), onClickEvent);
+            notificationGameObject.GetComponent<NotificationUI>().SetUp(notification.Message, GetColor(notification.Type), notification.OnClickEvent);
 
             var slotIndex = GetIndexOfFreeSlot();
 

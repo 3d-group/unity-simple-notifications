@@ -1,0 +1,26 @@
+{
+  "name": "com.3d-group.unity-simple-notifications",
+  "displayName": "3D Group - Notifications",
+  "version": "0.0.0",
+  "unity": "2019.4",
+  "description": "Simple UI notifications for Unity game engine.",
+  "keywords": [
+    "unity",
+    "3d-group",
+    "utility"
+  ],
+  "homepage": "https://github.com/3d-group/unity-simple-notifications.git",
+  "bugs": {
+    "url": "https://github.com/3d-group/unity-simple-notifications/issues",
+    "email": "support@3d.fi"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/3d-group/unity-simple-notifications.git"
+  },
+  "license": "MIT",
+  "author": "3D Group <antti@3d.fi> (https://3d.fi/)",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

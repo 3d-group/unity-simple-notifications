@@ -1,2 +1,4 @@
-# unity-simple-notifications
-Simple notifications package for Unity game engine
+# [WIP] Unity simple notifications
+
+
+Simple UI notifications package for Unity game engine.

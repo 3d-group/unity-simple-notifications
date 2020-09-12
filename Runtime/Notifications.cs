@@ -3,6 +3,7 @@ using System.Timers;
 using UnityEngine;
 using UnityEngine.Events;
 using Group3d.Notifications.Utilities;
+using UnityEngine.UI;
 
 namespace Group3d.Notifications
 {
@@ -15,8 +16,12 @@ namespace Group3d.Notifications
 
 #pragma warning disable CS0649
         [SerializeField] private GameObject notificationPrefab;
+        [SerializeField] private Font font;
 #pragma warning restore CS0649
 
+        private const float DefaultHeight = 150f;
+        private const int DefaultMinFontSize = 8;
+        private const int DefaultMaxFontSize = 80;
         private const float ShowAnimationDuration = .5f;
         private const float ShowDuration = 2f;
         private const float DestroyAnimationDuration = .5f;
@@ -24,6 +29,7 @@ namespace Group3d.Notifications
         private const float NotificationSpawnOffset = 150f;
         private const int PreventDuplicatesIntervalInMs = 1000;
 
+        // Singleton design, assigned in Awake().
         private static Notifications instance;
 
         // Represents slots for notifications, from top to bottom.
@@ -36,12 +42,17 @@ namespace Group3d.Notifications
 
         private void Awake()
         {
-            if (instance == null) instance = this;
+            instance = this;
 
             timer = new Timer(PreventDuplicatesIntervalInMs);
             timer.Elapsed += ResetLastNotificationHash;
             timer.AutoReset = true;
             timer.Enabled = true;
+
+            if (font == null)
+            {
+                font = Font.CreateDynamicFontFromOSFont("Arial", 60);
+            }
         }
 
         private void ResetLastNotificationHash(object o, ElapsedEventArgs e) => lastNotificationHash = 0;
@@ -102,18 +113,78 @@ namespace Group3d.Notifications
             }
             lastNotificationHash = hash;
 
-            var notification = Instantiate(notificationPrefab, transform);
+            // Parent is this GameObject by default.
+            var parent = transform;
+
+            GameObject notification;
+            RectTransform rect;
+
+            if (notificationPrefab == null)
+            {
+                // Prefab not given, creating notification dynamically.
+                notification = new GameObject("Notification");
+                rect = notification.AddComponent<RectTransform>();
+                rect.SetParent(parent);
+                rect.sizeDelta = new Vector2(0, DefaultHeight);
+                rect.localScale = Vector3.one;
+                // Set anchors to top-stretch
+                rect.anchorMin = new Vector2(0, 1);
+                rect.anchorMax = new Vector2(1, 1);
+                rect.pivot = new Vector2(.5f, .5f);
+                rect.anchoredPosition = Vector2.zero;
+
+                notification.AddComponent<CanvasRenderer>();
+
+                var image = notification.AddComponent<Image>();
+                image.raycastTarget = true; // So button works.
+                image.maskable = false;
+
+                var button = notification.AddComponent<Button>();
+                button.interactable = true;
+                button.transition = Selectable.Transition.None;
+
+                // Create text label as separate child GameObject.
+                var textGameObject = new GameObject("Label");
+                var textRect = textGameObject.AddComponent<RectTransform>();
+                textRect.SetParent(rect);
+                textRect.localScale = Vector3.one;
+                // Set anchors to stretch-stretch
+                textRect.anchorMin = new Vector2(0, 0);
+                textRect.anchorMax = new Vector2(1, 1);
+                textRect.pivot = new Vector2(.5f, .5f);
+                textRect.anchoredPosition = Vector2.zero;
+                textRect.sizeDelta = Vector2.zero;
+
+                textGameObject.AddComponent<CanvasRenderer>();
+
+                var text = textGameObject.AddComponent<Text>();
+                text.raycastTarget = false; // Don't interfere with button we just created.
+                text.maskable = false;
+                text.resizeTextMinSize = DefaultMinFontSize;
+                text.resizeTextMaxSize = DefaultMaxFontSize;
+                text.resizeTextForBestFit = true;
+                text.font = font;
+                text.alignment = TextAnchor.MiddleCenter;
+
+                var notificationUI = notification.AddComponent<NotificationUI>();
+                notificationUI.button = button;
+                notificationUI.panelImage = image;
+                notificationUI.messageText = text;
+            }
+            else
+            {
+                notification = Instantiate(notificationPrefab, parent);
+                rect = notification.GetComponent<RectTransform>();
+            }
+
             notification.GetComponent<NotificationUI>().SetUp(message, GetColor(type), onClickEvent);
 
-            var rect = notification.GetComponent<RectTransform>();
-            var pos = rect.anchoredPosition;
-            var sizeDelta = rect.sizeDelta;
-
             var slotIndex = GetIndexOfFreeSlot();
-            var spaceToSkip = slotIndex * -(sizeDelta.y + SpaceBetweenNotifications) - NotificationSpawnOffset;
 
             notificationSlots[slotIndex]++;
 
+            var sizeDelta = rect.sizeDelta;
+            var spaceToSkip = slotIndex * -(sizeDelta.y + SpaceBetweenNotifications) - NotificationSpawnOffset;
             var sizeY = sizeDelta.y / 2;
             // Move to screen.
             StartCoroutine(ObjectMovingUtilities.MoveYCoroutine(rect,

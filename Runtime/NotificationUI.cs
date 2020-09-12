@@ -6,11 +6,9 @@ namespace Group3d.Notifications
 {
     public class NotificationUI : MonoBehaviour
     {
-#pragma warning disable CS0649
-        [SerializeField] private Text messageText;
-        [SerializeField] private Image panelImage;
-        [SerializeField] private Button button;
-#pragma warning restore CS0649
+        public Text messageText;
+        public Image panelImage;
+        public Button button;
 
         public void SetUp(string message, Color messageColor, UnityAction onClickEvent)
         {

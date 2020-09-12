@@ -1,6 +1,8 @@
 {
-    "name": "NewAssembly",
-    "references": [],
+    "name": "Unity.com.3d-group.unity-simple-notifications.Editor",
+    "references": [
+        "GUID:19468d9af40f88d41a8c358d78ea3b51"
+    ],
     "includePlatforms": [
         "Editor"
     ],

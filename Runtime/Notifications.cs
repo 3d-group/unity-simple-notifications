@@ -10,24 +10,23 @@ namespace Group3d.Notifications
     [RequireComponent(typeof(RectTransform))]
     public class Notifications : MonoBehaviour
     {
-        private static readonly Color SuccessColor = new Color(.198f, .720f, .353f);
-        private static readonly Color WarningColor = new Color(1f, .661f, .429f);
-        private static readonly Color ErrorColor = new Color(1f, .471f, .471f);
-
 #pragma warning disable CS0649
-        [SerializeField] private GameObject notificationPrefab;
+        [SerializeField] private Color successColor = new Color(.198f, .720f, .353f);
+        [SerializeField] private Color warningColor = new Color(1f, .661f, .429f);
+        [SerializeField] private Color errorColor = new Color(1f, .471f, .471f);
+        [SerializeField] private float defaultHeight = 150f;
+        [SerializeField] private int defaultMinFontSize = 8;
+        [SerializeField] private int defaultMaxFontSize = 80;
+        [SerializeField] private float showAnimationDuration = .5f;
+        [SerializeField] private float showDuration = 2f;
+        [SerializeField] private float hideAnimationDuration = .5f;
+        [SerializeField] private float spaceBetweenNotifications = 10f;
+        [SerializeField] private float notificationSpawnOffset = 150f;
+        [SerializeField] private int preventDuplicatesTimeInMs = 1000;
+        [Header("Optional parameters:")]
         [SerializeField] private Font font;
+        [SerializeField] private GameObject notificationPrefab;
 #pragma warning restore CS0649
-
-        private const float DefaultHeight = 150f;
-        private const int DefaultMinFontSize = 8;
-        private const int DefaultMaxFontSize = 80;
-        private const float ShowAnimationDuration = .5f;
-        private const float ShowDuration = 2f;
-        private const float DestroyAnimationDuration = .5f;
-        private const float SpaceBetweenNotifications = 10f;
-        private const float NotificationSpawnOffset = 150f;
-        private const int PreventDuplicatesIntervalInMs = 1000;
 
         // Singleton design, assigned in Awake().
         private static Notifications instance;
@@ -44,7 +43,7 @@ namespace Group3d.Notifications
         {
             instance = this;
 
-            timer = new Timer(PreventDuplicatesIntervalInMs);
+            timer = new Timer(preventDuplicatesTimeInMs);
             timer.Elapsed += ResetLastNotificationHash;
             timer.AutoReset = true;
             timer.Enabled = true;
@@ -111,6 +110,13 @@ namespace Group3d.Notifications
                 Debug.Log("Duplicate notification after too short delay silenced");
                 return;
             }
+
+            if (lastNotificationHash == 0)
+            {
+                // Reset timer 
+                timer.Stop();
+                timer.Start();
+            }
             lastNotificationHash = hash;
 
             // Parent is this GameObject by default.
@@ -125,7 +131,7 @@ namespace Group3d.Notifications
                 notification = new GameObject("Notification");
                 rect = notification.AddComponent<RectTransform>();
                 rect.SetParent(parent);
-                rect.sizeDelta = new Vector2(0, DefaultHeight);
+                rect.sizeDelta = new Vector2(0, defaultHeight);
                 rect.localScale = Vector3.one;
                 // Set anchors to top-stretch
                 rect.anchorMin = new Vector2(0, 1);
@@ -160,8 +166,8 @@ namespace Group3d.Notifications
                 var text = textGameObject.AddComponent<Text>();
                 text.raycastTarget = false; // Don't interfere with button we just created.
                 text.maskable = false;
-                text.resizeTextMinSize = DefaultMinFontSize;
-                text.resizeTextMaxSize = DefaultMaxFontSize;
+                text.resizeTextMinSize = defaultMinFontSize;
+                text.resizeTextMaxSize = defaultMaxFontSize;
                 text.resizeTextForBestFit = true;
                 text.font = font;
                 text.alignment = TextAnchor.MiddleCenter;
@@ -184,7 +190,7 @@ namespace Group3d.Notifications
             notificationSlots[slotIndex]++;
 
             var sizeDelta = rect.sizeDelta;
-            var spaceToSkip = slotIndex * -(sizeDelta.y + SpaceBetweenNotifications) - NotificationSpawnOffset;
+            var spaceToSkip = slotIndex * -(sizeDelta.y + spaceBetweenNotifications) - notificationSpawnOffset;
             var sizeY = sizeDelta.y / 2;
             // Move to screen.
             StartCoroutine(ObjectMovingUtilities.MoveYCoroutine(rect,
@@ -194,9 +200,9 @@ namespace Group3d.Notifications
                     P1 = spaceToSkip - sizeY * 3f,
                     P2 = spaceToSkip - sizeY * 0.5f,
                     P3 = spaceToSkip - sizeY,
-                }, ShowAnimationDuration));
+                }, showAnimationDuration));
 
-            StartCoroutine(DestroyNotification(rect, ShowDuration, slotIndex));
+            StartCoroutine(DestroyNotification(rect, showDuration, slotIndex));
         }
 
         private IEnumerator DestroyNotification(RectTransform rect, float delay, int slotIndex)
@@ -214,24 +220,24 @@ namespace Group3d.Notifications
                     P1 = pos.y * 1.1f,
                     P2 = sizeY,
                     P3 = sizeY,
-                }, DestroyAnimationDuration - 0.1f));
+                }, hideAnimationDuration - 0.1f));
 
             notificationSlots[slotIndex]--;
-            Destroy(rect.gameObject, DestroyAnimationDuration);
+            Destroy(rect.gameObject, hideAnimationDuration);
         }
 
-        private static Color GetColor(NotificationTypes type)
+        private Color GetColor(NotificationTypes type)
         {
             switch (type)
             {
                 case NotificationTypes.Success:
-                    return SuccessColor;
+                    return successColor;
                 case NotificationTypes.Warning:
-                    return WarningColor;
+                    return warningColor;
                 case NotificationTypes.Error:
-                    return ErrorColor;
+                    return errorColor;
                 default:
-                    return SuccessColor;
+                    return successColor;
             }
         }
     }

@@ -9,7 +9,7 @@ namespace Group3d.Notifications.Utilities
         /// <summary>
         /// Moves an object along y-axis in bezier curve within set duration.
         /// </summary>
-        public static IEnumerator MoveYCoroutine(RectTransform transform, BezierCurve curve, float duration)
+        internal static IEnumerator MoveYCoroutine(RectTransform transform, BezierCurve curve, float duration)
         {
             var pos = transform.anchoredPosition;
             yield return BezierCoroutine(t => transform.anchoredPosition = new Vector2(pos.x, t), curve, duration);

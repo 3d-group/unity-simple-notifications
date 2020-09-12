@@ -63,7 +63,36 @@ namespace Group3d.Notifications
             return smallestIndex;
         }
 
-        internal void SendNotification(string message, NotificationTypes type, UnityAction onClickEvent, bool translate)
+        /// <summary>
+        /// Sends a notification.
+        /// <para><b>Note:</b> You must have a <see cref="GameObject"/> in the scene with <see cref="Notifications"/> attached for this to work!</para>
+        /// </summary>
+        /// <param name="message">Message to display.</param>
+        /// <param name="type">Type of notification, eg. Warning or Error.</param>
+        /// <param name="onClickEvent">Optional click event/action.</param>
+        /// <remarks>
+        /// <example>
+        /// Sending simple notification:
+        /// <code>
+        /// Notifications.Send("Hello world", NotificationTypes.Warning);
+        /// </code>
+        /// You can also specify on click event.
+        /// If you have method:
+        /// <code>
+        /// void DoSomething()
+        /// </code>
+        /// You can:
+        /// <code>
+        /// Notifications.Send("Hello world", NotificationTypes.Success, DoSomething);
+        /// </code>
+        /// </example>
+        /// </remarks>
+        public static void Send(string message, NotificationTypes type = NotificationTypes.Success, UnityAction onClickEvent = null)
+        {
+            instance.SendNotification(message, type, onClickEvent);
+        }
+
+        private void SendNotification(string message, NotificationTypes type, UnityAction onClickEvent)
         {
             var hash = message.GetHashCode();
             if (lastNotificationHash == hash)
@@ -118,11 +147,6 @@ namespace Group3d.Notifications
 
             notificationSlots[slotIndex]--;
             Destroy(rect.gameObject, DestroyAnimationDuration);
-        } 
-
-        internal static void Send(string message, NotificationTypes type = NotificationTypes.Success, UnityAction onClickEvent = null, bool translate = true)
-        {
-            instance.SendNotification(message, type, onClickEvent, translate);
         }
 
         private static Color GetColor(NotificationTypes type)

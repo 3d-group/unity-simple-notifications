@@ -1,6 +1,6 @@
 ﻿namespace Group3d.Notifications.Utilities
 {
-    public struct BezierCurve
+    internal struct BezierCurve
     {
         public float P0 { get; set; }
         public float P1 { get; set; }

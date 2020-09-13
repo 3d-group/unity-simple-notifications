@@ -1,6 +1,6 @@
 ﻿namespace Group3d.Notifications
 {
-    public enum NotificationTypes
+    public enum NotificationType
     {
         Success,
         Warning,

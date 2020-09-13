@@ -28,6 +28,23 @@ Notifications.Send("Hello world");
 
 ![Notification](Documentation~/images/SimpleShowCase.gif)
 
+Specify type (changes notification color) and click events with optional parameters:
+```c#
+private void Error()
+{
+   Notifications.Send("Spooky error!", NotificationType.Error, OnClick);
+}
+
+public void OnClick()
+{
+    // Do something.
+}
+```
+There is also async overload:
+```c#
+await Notifications.SendAsync("Warning!", NotificationType.Warning);
+```
+
 ## Install
 
 ### via OpenUPM
@@ -89,3 +106,11 @@ public class TEST : MonoBehaviour
 Confurable from the inspector:
 
 ![Inspector](Documentation~/images/Inspector.png)
+
+Custom notification prefab can be created and assigned in the inspector. If doing so, consider these things:
+- Prefab must have NotificationUI component (included in the package)
+- Prefab must have RectTransform component with anchors set to top-stretch
+
+If prefab is null, notification will be created dynamically.
+
+Optional Font parameter is only used when notification is created dynamically - if that is the only thing you want to change.

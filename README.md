@@ -1,5 +1,5 @@
 [![openupm](https://img.shields.io/npm/v/com.3d-group.unity-simple-notifications?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/com.3d-group.unity-simple-notifications/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
 # Unity simple notifications
 

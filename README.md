@@ -1,3 +1,4 @@
+[![npm package](https://img.shields.io/npm/v/com.3d-group.unity-simple-notifications)](https://www.npmjs.com/package/com.3d-group.unity-simple-notifications)
 [![openupm](https://img.shields.io/npm/v/com.3d-group.unity-simple-notifications?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/com.3d-group.unity-simple-notifications/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
@@ -7,6 +8,7 @@ Simple but powerful UI notifications package for Unity game engine.
 
 - [How to use](#how-to-use)
 - [Install](#install)
+  - [via npm](#via-npm)
   - [via OpenUPM](#via-openupm)
   - [via Git URL](#via-git-url)
 - [Performance and thread safety](#performance-and-thread-safety-rocket)
@@ -47,9 +49,28 @@ await Notifications.SendAsync("Warning!", NotificationType.Warning);
 
 ## Install
 
+### via npm
+
+Open `Packages/manifest.json` with your favorite text editor. Add a [scoped registry](https://docs.unity3d.com/Manual/upm-scoped.html) and following line to dependencies block:
+```json
+"scopedRegistries": [
+    {
+      "name": "npmjs",
+      "url": "https://registry.npmjs.org/",
+      "scopes": [
+        "com.3d-group"
+      ]
+    }
+  ],
+  "dependencies": {
+    "com.3d-group.unity-simple-notifications": "1.0.0",
+    ...
+```
+Package should now appear in package manager.
+
 ### via OpenUPM
 
-The package is available on the [openupm registry](https://openupm.com). It's recommended to install it via [openupm-cli](https://github.com/openupm/openupm-cli).
+The package is available on the [openupm registry](https://openupm.com). You can install it eg. via [openupm-cli](https://github.com/openupm/openupm-cli).
 
 ```
 openupm add com.3d-group.unity-simple-notifications
@@ -61,7 +82,7 @@ Open `Packages/manifest.json` with your favorite text editor. Add following line
 ```json
     {
         "dependencies": {
-            "com.littlebigfun.addressable-importer": "https://github.com/3d-group/unity-simple-notifications.git"
+            "com.3d-group.unity-simple-notifications": "https://github.com/3d-group/unity-simple-notifications.git"
         }
     }
 ```

@@ -17,6 +17,17 @@ One way to develop this Unity package is to create a new Unity Project and copy 
 
 This way .meta files (required by Unity) are generated automatically. Assets available in the package can now be tested and developed inside the project.
 
+After making changes you can test your package by eg. installing it via Git URL:
+
+Open `Packages/manifest.json` with your favorite text editor. Add following line to the dependencies block:
+```json
+    {
+        "dependencies": {
+            "com.3d-group.unity-simple-notifications": "https://github.com/YOUR_USER/unity-simple-notifications.git"
+        }
+    }
+```
+
 For further details, see [Unity docs about custom packages](https://docs.unity3d.com/Manual/CustomPackages.html).
 
 # Code of Conduct

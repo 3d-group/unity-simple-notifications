@@ -1,0 +1,11 @@
+{
+  "name": "Unity.com.3d-group.unity-simple-notifications.Tests",
+  "references": [
+    "Unity.com.3d-group.unity-simple-notifications"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": []
+}

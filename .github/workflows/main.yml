@@ -2,24 +2,21 @@ name: Main
 
 on:
   push:
-    branches: [master]
+    branches: [ master ]
 
 env:
   UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 
 jobs:
-  testAllModes:
-    name: Test in ${{ matrix.testMode }} on version ${{ matrix.unityVersion }}
+  Tests:
+    name: Test in ${{ matrix.testMode }} on v. ${{ matrix.unityVersion }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        projectPath:
-          - Samples/ExampleUnityProject
-        unityVersion:
-          - 2019.2.11f1
-        testMode:
-          - editmode # - playmode
+        projectPath: [ Samples/ExampleUnityProject ]
+        unityVersion: [ 2019.4.1f1 ]
+        testMode: [ playmode ] # editmode
     steps:
       - uses: actions/checkout@v2
         with:
@@ -30,8 +27,8 @@ jobs:
           key: Library-${{ matrix.projectPath }}
           restore-keys: |
             Library-
-      - uses: webbertakken/unity-test-runner@v1.4
-        name: Run tests
+      - uses: webbertakken/unity-test-runner@v1.6
+        name: Run
         id: tests
         with:
           projectPath: ${{ matrix.projectPath }}

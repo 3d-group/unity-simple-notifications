@@ -1,4 +1,4 @@
-name: Main
+name: Tests
 
 on:
   push:
@@ -9,7 +9,7 @@ env:
 
 jobs:
   Tests:
-    name: Test in ${{ matrix.testMode }} on v. ${{ matrix.unityVersion }}
+    name: Run in ${{ matrix.testMode }} on v. ${{ matrix.unityVersion }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -28,7 +28,7 @@ jobs:
           restore-keys: |
             Library-
       - uses: webbertakken/unity-test-runner@v1.6
-        name: Run
+        name: Run tests
         id: tests
         with:
           projectPath: ${{ matrix.projectPath }}

@@ -11,15 +11,14 @@
   ],
   "homepage": "https://github.com/3d-group/unity-simple-notifications.git",
   "bugs": {
-    "url": "https://github.com/3d-group/unity-simple-notifications/issues",
-    "email": "support@3d.fi"
+    "url": "https://github.com/3d-group/unity-simple-notifications/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/3d-group/unity-simple-notifications.git"
   },
   "license": "MIT",
-  "author": "3D Group <antti@3d.fi> (https://3d.fi/)",
+  "author": "3D Group (https://3d.fi/)",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   }

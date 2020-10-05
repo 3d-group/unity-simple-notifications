@@ -48,7 +48,7 @@ namespace Group3d.Notifications
         private long notificationsRateLimitedCount;
 
         private Timer cleanUpTimer;
-        private float sendNotificationTimer;
+        private float sendNotificationTimer = -1;
         private bool sendingNotifications;
 
         private void Awake()
@@ -91,7 +91,7 @@ namespace Group3d.Notifications
             else
             {
                 sendingNotifications = false;
-                sendNotificationTimer = 0f;
+                sendNotificationTimer = -1f;
             }
 
             if (notificationsRateLimitedCount > 0)
@@ -112,6 +112,8 @@ namespace Group3d.Notifications
                 var threshold = DateTime.Now.Ticks - CleanUpTimeStampsIntervalInMs * 10;
 
                 var keysToRemove = new List<int>();
+                
+                // ReSharper disable once LoopCanBeConvertedToQuery
                 foreach (var kvp in timestamps)
                 {
                     if (kvp.Value < threshold)
@@ -191,22 +193,31 @@ namespace Group3d.Notifications
                 var hash = notification.Message.GetHashCode();
                 var timestamp = DateTime.Now.Ticks;
 
-                // Check timestamps, if duplicate notification is sent recently, abort.
-                if (timestamps.ContainsKey(hash) && timestamps.TryGetValue(hash, out var previousStamp) && timestamp - previousStamp <= preventDuplicateTimeInMs)
+                if (timestamps.ContainsKey(hash))
                 {
-                    notificationsRateLimitedCount++;
-                    return;
-                }
-
-                // Add new timestamp.
-                // Rate limit if addition fails - that means notification is probably added during few milliseconds after last check.
-                if (timestamps.TryAdd(hash, timestamp))
-                {
-                    notificationsToSend.Enqueue(notification);
+                    // Check timestamps, if duplicate notification is sent recently, abort.
+                    if (timestamps.TryGetValue(hash, out var previousStamp) && timestamp - previousStamp <= preventDuplicateTimeInMs)
+                    {
+                        notificationsRateLimitedCount++;
+                    }
+                    else
+                    {
+                        notificationsToSend.Enqueue(notification);
+                        timestamps.AddOrUpdate(hash, i => timestamp, (a, b) => timestamp);
+                    }
                 }
                 else
                 {
-                    notificationsRateLimitedCount++;
+                    // Add new timestamp.
+                    // Rate limit if addition fails - that means notification is probably added during few milliseconds after last check.
+                    if (timestamps.TryAdd(hash, timestamp))
+                    {
+                        notificationsToSend.Enqueue(notification);
+                    }
+                    else
+                    {
+                        notificationsRateLimitedCount++;
+                    }
                 }
             });
         }

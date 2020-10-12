@@ -49,7 +49,6 @@ namespace Group3d.Notifications
 
         private Timer cleanUpTimer;
         private float sendNotificationTimer = -1;
-        private bool sendingNotifications;
 
         private void Awake()
         {
@@ -68,38 +67,27 @@ namespace Group3d.Notifications
 
         private void Update()
         {
-            if (sendingNotifications)
+            if (notificationsToSend.Count > 0 && sendNotificationTimer <= 0)
             {
-                if (sendNotificationTimer <= 0)
+                if (notificationsToSend.TryDequeue(out var notification))
                 {
-                    SendNotifications();
-                    sendNotificationTimer = sendNotificationIntervalInMs / 1000f;
+                    SendNotification(notification);
                 }
-                else
+
+                if (notificationsRateLimitedCount > 0)
                 {
-                    sendNotificationTimer -= Time.deltaTime;
-                }
-            }
-        }
-
-        private void SendNotifications()
-        {
-            if (notificationsToSend.Count > 0 && notificationsToSend.TryDequeue(out var notification))
-            {
-                SendNotification(notification);
-            }
-            else
-            {
-                sendingNotifications = false;
-                sendNotificationTimer = -1f;
-            }
-
-            if (notificationsRateLimitedCount > 0)
-            {
 #if DEBUG || UNITY_EDITOR
-                Debug.LogWarning($"Duplicate notifications rate limited: {notificationsRateLimitedCount}");
+                    Debug.LogWarning($"Duplicate notifications rate limited: {notificationsRateLimitedCount}");
 #endif
-                notificationsRateLimitedCount = 0;
+                    notificationsRateLimitedCount = 0;
+                }
+
+                sendNotificationTimer = sendNotificationIntervalInMs / 1000f;
+            }
+            
+            if (sendNotificationTimer > 0)
+            {
+                sendNotificationTimer -= Time.deltaTime;
             }
         }
 
@@ -183,13 +171,12 @@ namespace Group3d.Notifications
             if (notificationsToSend.Count >= notificationQueueMaxLength)
             {
                 notificationsRateLimitedCount++;
+                Debug.Log("Duplicate 1 ++");
                 return;
             }
 
             await Task.Run(() =>
             {
-                sendingNotifications = true;
-
                 var hash = notification.Message.GetHashCode();
                 var timestamp = DateTime.Now.Ticks;
 

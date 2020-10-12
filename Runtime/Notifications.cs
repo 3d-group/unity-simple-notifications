@@ -36,7 +36,12 @@ namespace Group3d.Notifications
         [SerializeField] private GameObject notificationPrefab;
 #pragma warning restore CS0649
 
-        public Func<string, string> TranslationFunction { set; private get; }
+        public static Func<string, string> TranslationFunction
+        {
+            set => instance.translationFunction = value;
+        }
+
+        private Func<string, string> translationFunction;
 
         // Singleton design, assigned in Awake().
         private static Notifications instance;
@@ -233,9 +238,9 @@ namespace Group3d.Notifications
             var rect = notificationGameObject.GetComponent<RectTransform>();
 
             var message = notification.Message;
-            if (TranslationFunction != null)
+            if (translationFunction != null)
             {
-                message = TranslationFunction(message);
+                message = translationFunction(message);
             }
             notificationGameObject.GetComponent<NotificationUI>().SetUp(message, GetColor(notification.Type), notification.OnClickEvent);
 

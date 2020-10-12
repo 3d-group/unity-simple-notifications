@@ -49,6 +49,20 @@ There is also async overload:
 await Notifications.SendAsync("Warning!", NotificationType.Warning);
 ```
 
+You can also hook Translation / any fuction to handle messages before sending like so:
+```c#
+private void Start()
+{
+    Notifications.TranslationFunction = Translate;
+}
+
+private string Translate(string key)
+{
+    // Do something.
+    return key;
+}
+```
+
 ## Install
 
 ### via npm

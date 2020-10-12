@@ -171,7 +171,6 @@ namespace Group3d.Notifications
             if (notificationsToSend.Count >= notificationQueueMaxLength)
             {
                 notificationsRateLimitedCount++;
-                Debug.Log("Duplicate 1 ++");
                 return;
             }
 

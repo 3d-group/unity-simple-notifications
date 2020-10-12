@@ -1,6 +1,12 @@
 name: Tests
 
-on: push
+on:
+  # Currently tests can only be ran against main branch because of how
+  # Test project is set up. See Samples\ExampleUnityProject\Packages\manifest.json
+  # Package is always cloned from the main branch for tests
+  push:
+    branches:
+      - main
 
 env:
   UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
